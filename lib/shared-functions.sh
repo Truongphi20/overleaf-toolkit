@@ -5,7 +5,7 @@
 function read_config() {
   source "$TOOLKIT_ROOT/lib/default.rc"
   # shellcheck source=/dev/null
-  source "$TOOLKIT_ROOT/config/overleaf.rc"
+  source "$CONFIG_DIR/overleaf.rc"
 
   if [[ $SERVER_PRO != "true" || $IMAGE_VERSION_MAJOR -lt 4 ]]; then
     # Force git bridge to be disabled if not ServerPro >= 4
@@ -14,7 +14,7 @@ function read_config() {
 }
 
 function read_image_version() {
-  IMAGE_VERSION="$(head -n 1 "$TOOLKIT_ROOT/config/version")"
+  IMAGE_VERSION="$(head -n 1 "$CONFIG_DIR/version")"
   if [[ ! "$IMAGE_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9])+(-RC[0-9]*)?(-with-texlive-full)?$ ]]; then
     echo "ERROR: invalid version '${IMAGE_VERSION}'"
     exit 1
@@ -163,7 +163,7 @@ rebrand_sharelatex_env_variables() {
 }
 
 function check_sharelatex_env_vars() {
-  local rc_occurrences=$(set +o pipefail && grep -o SHARELATEX_ "$TOOLKIT_ROOT/config/overleaf.rc" | wc -l | sed 's/ //g')
+  local rc_occurrences=$(set +o pipefail && grep -o SHARELATEX_ "$CONFIG_DIR/overleaf.rc" | wc -l | sed 's/ //g')
 
   if [ "$rc_occurrences" -gt 0 ]; then
     echo "Rebranding from ShareLaTeX to Overleaf"
@@ -184,7 +184,7 @@ function check_sharelatex_env_vars() {
     invalid_prefix="OVERLEAF_"
   fi
 
-  local env_occurrences=$(set +o pipefail && grep -o "$invalid_prefix" "$TOOLKIT_ROOT/config/variables.env" | wc -l | sed 's/ //g')
+  local env_occurrences=$(set +o pipefail && grep -o "$invalid_prefix" "$CONFIG_DIR/variables.env" | wc -l | sed 's/ //g')
 
   if [ "$env_occurrences" -gt 0 ]; then
     echo "Rebranding from ShareLaTeX to Overleaf"
@@ -202,7 +202,7 @@ function check_sharelatex_env_vars() {
   fi
 
   if [[ ! "$IMAGE_VERSION_MAJOR" -lt 5 ]]; then
-    if grep -q -e 'TEXMFVAR=/var/lib/sharelatex/tmp/texmf-var' "$TOOLKIT_ROOT/config/variables.env"; then
+    if grep -q -e 'TEXMFVAR=/var/lib/sharelatex/tmp/texmf-var' "$CONFIG_DIR/variables.env"; then
       echo "Rebranding from ShareLaTeX to Overleaf"
       echo "  The 'TEXMFVAR' override is not needed since Server Pro/Overleaf CE version 3.2 (August 2022) and it conflicts with the rebranded paths."
       echo "  Please remove the following entry from your config/variables.env:"
@@ -216,12 +216,12 @@ function check_sharelatex_env_vars() {
 
 function read_variable() {
   local name=$1
-  grep -E "^$name=" "$TOOLKIT_ROOT/config/variables.env" \
+  grep -E "^$name=" "$CONFIG_DIR/variables.env" \
   | sed -r "s/^$name=([\"']?)(.+)\1\$/\2/"
 }
 
 function read_configuration() {
   local name=$1
-  grep -E "^$name=" "$TOOLKIT_ROOT/config/overleaf.rc" \
+  grep -E "^$name=" "$CONFIG_DIR/overleaf.rc" \
   | sed -r "s/^$name=([\"']?)(.+)\1\$/\2/"
 }
